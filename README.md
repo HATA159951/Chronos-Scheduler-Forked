@@ -116,6 +116,10 @@ type: module
 3. Settings → Devices & Services → Add Integration → Chronos Scheduler
 4. Add `type: custom:chronos-card` in your dashboard
 
+### Beta channel
+
+Features reach HACS in batches, because every integration update means a Home Assistant restart. If you would rather try things early, open Chronos in HACS, choose **Show beta versions** from its menu, and HACS will also offer the pre-releases (versions like `1.45.0b1`). Everyone else only sees the stable releases. Beta feedback is welcome in the issues.
+
 ## First-time setup
 
 On first run the integration asks to select a `weather.*` entity to use as the weather source. You can change it later from the in-card Settings, or even leave it empty if you only rely on point sensors (Ecowitt, WeatherFlow, …) configured per attribute under Settings → Weather source → sensor overrides.

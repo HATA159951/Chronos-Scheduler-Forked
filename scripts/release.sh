@@ -2,6 +2,11 @@
 # Bump version, rebuild, commit, tag, push, create GitHub release.
 # Usage: ./scripts/release.sh <version> "<release notes>"
 #   e.g. ./scripts/release.sh 1.0.1 "Fix sidebar drawer on iOS"
+#
+# A version with a pre-release suffix (1.45.0b1, 1.45.0rc1) becomes a GitHub
+# pre-release: HACS offers it only to users who enabled "Show beta versions"
+# for this repository, everyone else keeps seeing the last stable release.
+# That is the beta channel: same branch, no merges, two audiences.
 
 set -euo pipefail
 
@@ -13,6 +18,10 @@ fi
 
 VERSION="$1"
 NOTES="$2"
+PRERELEASE=0
+if [[ "$VERSION" =~ [0-9](a|b|rc)[0-9]+$ ]]; then
+  PRERELEASE=1
+fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 cd "$ROOT"
@@ -124,8 +133,14 @@ git push origin main
 git push origin "v$VERSION"
 
 echo "==> GitHub Release"
-gh release create "v$VERSION" --title "v$VERSION" --notes "$NOTES"
-
-echo
-echo "Release v$VERSION published."
-echo "HACS will pick up the update within a few hours — users will see the badge in HACS."
+if [ "$PRERELEASE" -eq 1 ]; then
+  gh release create "v$VERSION" --title "v$VERSION (beta)" --notes "$NOTES" --prerelease
+  echo
+  echo "Pre-release v$VERSION published."
+  echo "Only HACS users with 'Show beta versions' enabled for Chronos will be offered it."
+else
+  gh release create "v$VERSION" --title "v$VERSION" --notes "$NOTES"
+  echo
+  echo "Release v$VERSION published."
+  echo "HACS will pick up the update within a few hours; users will see the badge in HACS."
+fi
