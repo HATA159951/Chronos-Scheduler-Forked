@@ -872,4 +872,6 @@ export const ES_STRINGS: Record<string, string> = {
   "settings.overview.group_by.group": "Grupo",
   "settings.overview.group_by.type": "Tipo de dispositivo",
   "settings.overview.group_by.hint": "El grupo se asigna en el editor de cada programación. Con un solo grupo la vista general queda plana; los encabezados se contraen con un toque y el estado se recuerda en este dispositivo.",
+  "editor.group.color": "Color del grupo",
+  "editor.group.color.none": "Sin color",
 };

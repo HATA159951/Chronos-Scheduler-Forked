@@ -34,7 +34,7 @@ export async function makeHass({ settings: settingsOverride = {} } = {}) {
   schedules[3].group = "Giardino";
   // s2 only simulates presence when nobody is home.
   schedules[1].modes = ["away"];
-  const live = { mode: "home" };
+  const live = { mode: "home", group_colors: { Giardino: "#43a047" } };
   const rules = [
     { id: "r1", name: "Salta se piove", if: "precipitation > 2", then: "Skip", effect: "skip", active: true, fire_mode: "every", targets: [{ schedule_id: "s1", block_index: null }] },
     { id: "r2", name: "Più acqua col caldo", if: "", then: "Scale value", effect: "scale_value", active: true, fire_mode: "every",
@@ -80,9 +80,12 @@ export async function makeHass({ settings: settingsOverride = {} } = {}) {
     "chronos/rules/save": (m) => m.rule,
     "chronos/rules/remove": () => null,
     "chronos/rules/reorder": () => rules,
-    "chronos/settings/get": () => ({ ...fixtures.settings, language: "it", nav_style: "top", weather_entity: "weather.casa", live_map: false, price_entity: "sensor.prezzo_energia", mode: live.mode, ...settingsOverride }),
+    "chronos/settings/get": () => ({ ...fixtures.settings, language: "it", nav_style: "top", weather_entity: "weather.casa", live_map: false, price_entity: "sensor.prezzo_energia", mode: live.mode, group_colors: live.group_colors, ...settingsOverride }),
     "chronos/mode/set": (m) => { live.mode = m.mode; return { ...fixtures.settings, mode: live.mode }; },
-    "chronos/settings/update": (m) => ({ ...fixtures.settings, ...m.patch }),
+    "chronos/settings/update": (m) => {
+      if (m.patch.group_colors) live.group_colors = m.patch.group_colors;
+      return { ...fixtures.settings, language: "it", nav_style: "top", mode: live.mode, group_colors: live.group_colors, ...settingsOverride, ...m.patch };
+    },
     "chronos/preview/forecast": () => forecast,
     "chronos/entities/available": () => [
       { entity_id: "light.corridoio", name: "Corridoio", type: "light", domain: "light" },

@@ -975,4 +975,11 @@ export const chronosStyles = css`
   .group-head:hover { color: var(--accent); }
   .group-head[data-collapsed="true"] { color: var(--text-muted); }
   .group-head__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .group-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; display: inline-block; }
+  .chip--group { gap: 4px; }
+  .group-swatch {
+    width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; padding: 0;
+    display: inline-grid; place-items: center; cursor: pointer;
+  }
+  .group-swatch[data-active="true"] { border-color: var(--text); box-shadow: 0 0 0 2px var(--surface) inset; }
 `;

@@ -6,7 +6,7 @@ import { KIND_COLORS } from "../actions";
 import { getDays } from "../utils";
 import { t } from "../i18n";
 import type { ChronosCard } from "../chronos-card";
-import { knownGroups } from "../grouping";
+import { groupColor, groupInk, knownGroups } from "../grouping";
 import "../timeline";
 
 @customElement("chronos-week")
@@ -58,7 +58,7 @@ export class ChronosWeek extends LitElement {
               <div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center" data-role="group-filter">
                 <span class="text-xs text-mute">${t("week.filter.groups")}</span>
                 ${groups.map((g) => html`
-                  <button class="chip" data-group="${g}" style="cursor:pointer"
+                  <button class="chip" data-group="${g}" style="cursor:pointer;${groupColor(this.card._settings, g) ? `background:${groupColor(this.card._settings, g)};color:${groupInk(groupColor(this.card._settings, g)!)};border-color:transparent` : ""}"
                     @click=${() => { this._filter = new Set(schedules.filter((s) => (s.group || "").trim() === g).map((s) => s.id)); }}>
                     ${icon("hash", 11)} ${g}
                   </button>`)}
@@ -71,7 +71,7 @@ export class ChronosWeek extends LitElement {
                     title="${s.enabled ? "" : t("schedule.disabled")}"
                     style="cursor:pointer;background:${on ? "var(--accent-soft)" : "var(--bg-sunken)"};color:${on ? "var(--accent-ink)" : "var(--text-muted)"};border:1px solid ${on ? "transparent" : "var(--border-soft)"};${s.enabled ? "" : "font-style:italic;opacity:0.7"}"
                     @click=${() => this._toggleFilter(s.id)}>
-                    ${on ? icon("check", 11) : nothing} ${s.name}
+                    ${on ? icon("check", 11) : nothing}${groupColor(this.card._settings, s.group) ? html`<span class="group-dot" style="background:${groupColor(this.card._settings, s.group)}"></span>` : nothing} ${s.name}
                   </button>
                 `;
               })}

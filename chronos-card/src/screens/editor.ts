@@ -4,7 +4,7 @@ import { chronosStyles } from "../styles";
 import { icon, deviceIcon } from "../icons";
 import { getActionsForType, getActionDef, actionLabel, actionColor, KIND_COLORS, defaultAction } from "../actions";
 import { fmtHour, getDays, DEVICE_TYPES, computeRepeat, resolveBlockTime } from "../utils";
-import { knownGroups } from "../grouping";
+import { GROUP_PALETTE, groupColor, groupInk, knownGroups } from "../grouping";
 import { exportSchedule } from "../transfer";
 import { CARD_VERSION } from "../version";
 import { t, actionDefLabel, actionValueLabel, actionExtraLabel, deviceTypeLabel } from "../i18n";
@@ -43,9 +43,30 @@ export class ChronosEditor extends LitElement {
         <input class="input" style="max-width:200px;padding:4px 8px;font-size:12.5px" .value=${schedule.group || ""}
           placeholder="${t("editor.group.placeholder")}" title="${t("editor.group.hint")}"
           @input=${(e: InputEvent) => this.card.updateScheduleLocal(schedule.id, { group: (e.target as HTMLInputElement).value })}/>
-        ${others.map((g) => html`
-          <button class="chip" data-group="${g}" style="cursor:pointer" title="${t("editor.group.use", { name: g })}"
-            @click=${() => this.card.updateScheduleLocal(schedule.id, { group: g })}>${g}</button>`)}
+        ${others.map((g) => {
+          const hex = groupColor(this.card._settings, g);
+          return html`
+          <button class="chip" data-group="${g}" style="cursor:pointer;${hex ? `background:${hex};color:${groupInk(hex)};border-color:transparent` : ""}" title="${t("editor.group.use", { name: g })}"
+            @click=${() => this.card.updateScheduleLocal(schedule.id, { group: g })}>${g}</button>`;
+        })}
+      </div>
+      ${current ? this._renderGroupPalette(current) : nothing}
+    `;
+  }
+
+  /** Colour of the current group's tag: a fixed palette plus "none". The
+   * choice is saved at once in the settings, not with the schedule, because
+   * the colour belongs to the group name. */
+  private _renderGroupPalette(group: string) {
+    const active = groupColor(this.card._settings, group);
+    return html`
+      <div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center" data-role="group-color">
+        <span class="text-xs text-mute">${t("editor.group.color")}</span>
+        <button class="group-swatch" data-color="" data-active="${!active}" title="${t("editor.group.color.none")}"
+          style="background:var(--bg-sunken);border-style:dashed" @click=${() => this.card.setGroupColor(group, null)}>${active ? "" : icon("check", 10)}</button>
+        ${GROUP_PALETTE.map((hex) => html`
+          <button class="group-swatch" data-color="${hex}" data-active="${active === hex}" title="${hex}"
+            style="background:${hex};color:${groupInk(hex)}" @click=${() => this.card.setGroupColor(group, hex)}>${active === hex ? icon("check", 10) : ""}</button>`)}
       </div>
     `;
   }

@@ -8,7 +8,7 @@ import { fmtHour, computeRepeat } from "../utils";
 import { t } from "../i18n";
 import type { ChronosCard } from "../chronos-card";
 import type { ChronosDevice, Schedule } from "../types";
-import { groupSchedules, loadCollapsed, saveCollapsed, type GroupBy } from "../grouping";
+import { groupColor, groupInk, groupSchedules, loadCollapsed, saveCollapsed, type GroupBy } from "../grouping";
 import "../timeline";
 
 @customElement("chronos-overview")
@@ -89,10 +89,11 @@ export class ChronosOverview extends LitElement {
                 <button class="group-head" data-collapsed="${collapsed}" @click=${() => this._toggleGroup(g.key)}
                   title="${collapsed ? t("overview.group.expand") : t("overview.group.collapse")}">
                   ${icon(collapsed ? "chevron-right" : "chevron-down", 14)}
+                  ${groupBy === "group" && groupColor(this.card._settings, g.key) ? html`<span class="group-dot" style="background:${groupColor(this.card._settings, g.key)}"></span>` : nothing}
                   <span class="group-head__name">${g.label}</span>
                   <span class="tag mono">${g.items.filter((s) => s.enabled).length}/${g.items.length}</span>
                 </button>` : nothing}
-              ${collapsed ? nothing : html`<div class="grid-auto">${g.items.map((s) => this._renderCard(s, devices))}</div>`}
+              ${collapsed ? nothing : html`<div class="grid-auto">${g.items.map((s) => this._renderCard(s, devices, !(headers && groupBy === "group")))}</div>`}
             </div>
           `;
         })}
@@ -108,7 +109,14 @@ export class ChronosOverview extends LitElement {
     saveCollapsed(next);
   }
 
-  private _renderCard(s: Schedule, devices: ChronosDevice[]) {
+  /** The group as a coloured tag, like a Home Assistant label. */
+  private _renderGroupTag(group: string) {
+    const hex = groupColor(this.card._settings, group);
+    const style = hex ? `background:${hex};color:${groupInk(hex)};border-color:transparent` : "";
+    return html`<span class="chip chip--group" data-role="group-tag" style="${style}">${icon("hash", 11)} ${group.trim()}</span>`;
+  }
+
+  private _renderCard(s: Schedule, devices: ChronosDevice[], showGroupTag = true) {
     const devs = (s.device_ids || []).map((id) => devices.find((d) => d.id === id)).filter(Boolean);
     const activeRules = this.card.rulesForSchedule(s.id).filter((r) => r.active).length;
     const conflicts = this.card.deviceConflictWarnings(s);
@@ -161,6 +169,7 @@ export class ChronosOverview extends LitElement {
           </div>
           <div style="flex:1"></div>
           ${conflicts.length ? html`<span class="chip chip--conflict" title="${conflicts.join("\n")}">${icon("info", 11)} ${t("overview.conflicts", { n: conflicts.length })}</span>` : nothing}
+          ${showGroupTag && (s.group || "").trim() ? this._renderGroupTag(s.group!) : nothing}
           ${idle ? html`<span class="chip chip--idle" data-role="idle">${icon("moon", 11)} ${t("mode.inactive", { mode: t("mode." + this.card.currentMode()) })}</span>` : nothing}
           ${paused ? html`<span class="chip chip--paused">${icon("pause", 11)} ${t("pause.badge", { when: this.card.pausedLabel(s) })}</span>` : nothing}
           ${activeRules > 0 ? html`<span class="chip chip--weather">${icon("cloud", 11)} ${t("overview.rules_count", { n: activeRules })}</span>` : nothing}

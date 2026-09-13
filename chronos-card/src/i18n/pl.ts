@@ -872,4 +872,6 @@ export const PL_STRINGS: Record<string, string> = {
   "settings.overview.group_by.group": "Grupa",
   "settings.overview.group_by.type": "Typ urządzenia",
   "settings.overview.group_by.hint": "Grupę ustawia się w edytorze każdego harmonogramu. Przy jednej grupie przegląd pozostaje płaski; nagłówki zwijają się dotknięciem, a stan jest zapamiętywany na tym urządzeniu.",
+  "editor.group.color": "Kolor grupy",
+  "editor.group.color.none": "Bez koloru",
 };

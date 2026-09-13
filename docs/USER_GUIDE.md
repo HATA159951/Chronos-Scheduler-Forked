@@ -140,6 +140,8 @@ The same pause is available as a `button` entity per schedule (`<name> skip toda
 
 A schedule can carry a **group**, set in the editor right under the name: free text, with the groups already in use offered as chips so the names stay consistent. There is no list of groups to maintain, a group exists as long as one schedule uses it.
 
+A group can have a **colour**, like a Home Assistant label: once a group is set, a palette appears under the field. The colour belongs to the group name, not to the schedule, so every schedule of the group shows it: as a dot on the group header, as a coloured tag on the schedule card when the overview is not grouped by group, and on the chips of the week view.
+
 The overview lists the schedules under one header per group, sorted by name, with the schedules without a group last. Each header shows how many schedules of the group are active and collapses with a tap; the collapsed state is remembered in the browser. As long as everything is in a single group, or nothing has a group, the overview stays flat, so nothing changes until you decide to use groups.
 
 `Settings > Appearance > Group the overview by` switches between no grouping, your groups, and the device type, which gives a grouped overview (irrigation, thermostats, lights) with no setup at all. The week view offers your groups as filter chips above the schedule ones.

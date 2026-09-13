@@ -166,3 +166,29 @@ test("the week view filters by group and the editor offers the groups in use", a
   expect(await page.evaluate(() => (window as any).__card._schedules.find((s) => s.id === "s2").group)).toBe("Giardino");
   await expect(field.locator("button[data-group]")).toHaveText(["Riscaldamento"]);
 });
+
+test("a group has a colour, shown on its header, its tags and the week chips", async ({ page }) => {
+  await mount(page, "overview");
+  const giardino = page.locator('chronos-overview [data-role="group"][data-key="Giardino"] .group-head .group-dot');
+  await expect(giardino).toHaveCSS("background-color", "rgb(67, 160, 71)");
+  await expect(page.locator('chronos-overview [data-role="group"][data-key="Riscaldamento"] .group-head .group-dot')).toHaveCount(0);
+  // Under its own header the card carries no tag; grouped by type it does.
+  await expect(page.locator('chronos-overview [data-role="group-tag"]')).toHaveCount(0);
+  await page.evaluate(() => (window as any).__mount({ host: "card", settings: { overview_group_by: "type" } }));
+  await page.evaluate(() => (window as any).__open("overview"));
+  const tag = card(page, S1).locator('[data-role="group-tag"]');
+  await expect(tag).toHaveText(/Giardino/);
+  await expect(tag).toHaveCSS("background-color", "rgb(67, 160, 71)");
+
+  // The editor palette writes the colour to the settings.
+  await page.evaluate(() => (window as any).__card.selectSchedule("s3", "editor"));
+  const palette = page.locator('chronos-editor [data-role="group-color"]');
+  await expect(palette.locator('.group-swatch[data-active="true"]')).toHaveAttribute("data-color", "");
+  await palette.locator('.group-swatch[data-color="#1e88e5"]').click();
+  await expect(palette.locator('.group-swatch[data-active="true"]')).toHaveAttribute("data-color", "#1e88e5");
+  const last = await page.evaluate(() => (window as any).__wsLog.filter((m) => m.type === "chronos/settings/update").pop());
+  expect(last.patch.group_colors).toEqual({ Giardino: "#43a047", Riscaldamento: "#1e88e5" });
+
+  await page.evaluate(() => (window as any).__open("week"));
+  await expect(page.locator('chronos-week [data-role="group-filter"] button[data-group="Riscaldamento"]')).toHaveCSS("background-color", "rgb(30, 136, 229)");
+});

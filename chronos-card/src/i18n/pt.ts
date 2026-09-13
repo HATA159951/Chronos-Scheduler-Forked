@@ -872,4 +872,6 @@ export const PT_STRINGS: Record<string, string> = {
   "settings.overview.group_by.group": "Grupo",
   "settings.overview.group_by.type": "Tipo de dispositivo",
   "settings.overview.group_by.hint": "O grupo define-se no editor de cada agendamento. Com um só grupo a visão geral fica plana; os cabeçalhos recolhem-se com um toque e o estado é lembrado neste dispositivo.",
+  "editor.group.color": "Cor do grupo",
+  "editor.group.color.none": "Sem cor",
 };

@@ -569,6 +569,18 @@ export class ChronosCard extends LitElement {
     return d ? fmtWhen(d) : "";
   }
 
+  /** Colour of a group tag, stored in the settings by group name. `null`
+   * removes the entry. Groups are not records, so this is the one place a
+   * group has state of its own. */
+  async setGroupColor(group: string, hex: string | null) {
+    const name = group.trim();
+    if (!name) return;
+    const colors = { ...(this._settings?.group_colors || {}) };
+    if (hex) colors[name] = hex;
+    else delete colors[name];
+    await this.doUpdateSettings({ group_colors: colors });
+  }
+
   openPauseModal(id: string) { this._pauseTargetId = id; }
   closePauseModal() { this._pauseTargetId = ""; }
 

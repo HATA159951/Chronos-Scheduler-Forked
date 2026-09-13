@@ -872,4 +872,6 @@ export const NL_STRINGS: Record<string, string> = {
   "settings.overview.group_by.group": "Groep",
   "settings.overview.group_by.type": "Apparaattype",
   "settings.overview.group_by.hint": "De groep stel je in de editor van elk schema in. Met één groep blijft het overzicht vlak; koppen klappen in met een tik en de staat wordt op dit apparaat onthouden.",
+  "editor.group.color": "Groepskleur",
+  "editor.group.color.none": "Geen kleur",
 };

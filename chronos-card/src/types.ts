@@ -288,6 +288,8 @@ export interface Settings {
   mode?: string;
   /** How the overview is laid out: flat, by user group, or by device type. */
   overview_group_by?: "none" | "group" | "type";
+  /** Group name -> hex colour for its tag, like Home Assistant labels. */
+  group_colors?: Record<string, string>;
   /** Entity holding electricity prices, used by the price.* rule variables. */
   price_entity?: string;
   /** What a NEWLY created block does. Applied at creation only, so existing

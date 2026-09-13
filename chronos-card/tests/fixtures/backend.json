@@ -765,6 +765,7 @@
   "confirm_disable": true,
   "sidebar_panel": true,
   "mode": "home",
-  "overview_group_by": "group"
+  "overview_group_by": "group",
+  "group_colors": {}
  }
 }

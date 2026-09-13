@@ -67,3 +67,25 @@ export function saveCollapsed(keys: Set<string>): void {
     // Not persisted: the state still lives for this page.
   }
 }
+
+/** The colours offered for a group tag, close to Home Assistant's label
+ * palette. Fixed set rather than a free picker: the tags must stay legible
+ * with white text and read as one family across the card. */
+export const GROUP_PALETTE = [
+  "#e53935", "#d81b60", "#8e24aa", "#3949ab", "#1e88e5", "#00897b",
+  "#43a047", "#7cb342", "#fdd835", "#fb8c00", "#6d4c41", "#546e7a",
+];
+
+export function groupColor(settings: { group_colors?: Record<string, string> } | null | undefined, group: string | undefined): string | null {
+  const name = (group || "").trim();
+  if (!name) return null;
+  const hex = settings?.group_colors?.[name];
+  return typeof hex === "string" && /^#[0-9a-f]{6}$/i.test(hex) ? hex : null;
+}
+
+/** Text colour that reads on a palette colour: dark on the two light ones. */
+export function groupInk(hex: string): string {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return 0.299 * r + 0.587 * g + 0.114 * b > 170 ? "#1a1a1a" : "#ffffff";
+}

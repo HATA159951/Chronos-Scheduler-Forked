@@ -413,6 +413,9 @@ DEFAULT_SETTINGS = {
     "mode": "home",
     # Overview layout: "none" | "group" (user-assigned) | "type" (device type).
     "overview_group_by": "group",
+    # Group name -> hex colour, chosen in the editor; a group without an
+    # entry has no colour. Kept here because groups are not records.
+    "group_colors": {},
 }
 
 # Auto-off timer for turn_on blocks: device type → switch-off service
