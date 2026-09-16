@@ -225,6 +225,9 @@ export interface Schedule {
   /** Free-text group for the overview (issue #24). Schedules sharing a
    * group are listed together under a collapsible header. */
   group?: string;
+  /** Safety off: minutes after a MANUAL turn-on of one of the devices before
+   * Chronos switches it off, at any time of day. Unset/null = off. */
+  manual_off_min?: number | null;
 }
 
 export interface Settings {

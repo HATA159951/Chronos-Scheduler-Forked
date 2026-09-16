@@ -2,6 +2,8 @@
 logbook attribute a state change to Chronos."""
 from __future__ import annotations
 
+from collections import deque
+
 import logging
 from typing import Any
 
@@ -53,6 +55,16 @@ def make_history_entry(
 
 
 
+# Context ids of the service calls Chronos issued, newest last. A state change
+# carrying one of them was caused by Chronos; anything else counts as manual
+# for the safety-off timer. Bounded: 500 covers hours on a busy install.
+_ISSUED_CONTEXTS: deque[str] = deque(maxlen=500)
+
+
+def is_own_context(context_id: str | None) -> bool:
+    return bool(context_id) and context_id in _ISSUED_CONTEXTS
+
+
 def fire_with_context(
     hass: HomeAssistant,
     event_type: str,
@@ -71,7 +83,9 @@ def fire_with_context(
         **data,
     }
     hass.bus.async_fire(event_type, enriched, context=parent_ctx)
-    return Context(parent_id=parent_ctx.id)
+    child = Context(parent_id=parent_ctx.id)
+    _ISSUED_CONTEXTS.append(child.id)
+    return child
 
 
 

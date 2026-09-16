@@ -6,18 +6,19 @@
 
 ![Chronos Scheduler](docs/images/chronos-cover-source.png)
 
-**Chronos** is an advanced scheduler for Home Assistant. It manages thermostats, lights, blinds, irrigation, switches, fans, water heaters, mowers, vacuums, scenes, automations and alarm panels through daily time slots with **conditional weather rules**.
+**Chronos** is an advanced scheduler for Home Assistant. It manages thermostats, lights, blinds, irrigation, switches, fans, water heaters, mowers, vacuums, scenes, automations and alarm panels through daily time slots with **conditional rules**.
 
 A single Lovelace card provides:
 
 - Schedule overview with live KPIs
 - Linear / radial / list timeline editor with drag-and-drop and 5/15/30/60-minute snap; the chosen view is remembered per schedule, and blocks can't overlap (dragging over a neighbour trims it to the new limit)
-- IF/THEN weather rules (temperature, rain, wind, UV, lux, sun position, …) to skip, shift, force, or change duration of the active block
+- IF/THEN rules (temperature, rain, wind, UV, lux, sun position, …) to skip, shift, force, or change duration of the active block
 - Blocks can act on both edges: a switch per block sends an action when the block ENDS too, so a "turn on" block finally switches off by itself. The end action is your choice, not a hardcoded off, because the sensible end state depends on the device. Off by default so nothing changes on update, with a default for newly created blocks under `Settings → Time blocks`
 - Electricity price rules: point Chronos at the price sensor you already have (Nordpool, ENTSO-e, Tibber, …) and rules gain `price.now`, `price.rank_today` (1 = cheapest hour of the day, so `price.rank_today <= 4` means "the four cheapest hours") and `price.vs_average_pct`. No price bands to redefine: integrations already publish average/min/max
 - Random shift per block: the block moves each day by up to N minutes either way, by an amount drawn once per day and stable for the whole day, for presence simulation. The timeline shows the band it can land in
 - Presence simulation per block: instead of holding one state for the whole window, the block switches on and off several times at times that change every evening. You set the window, how many activations at most and how long each one lasts; Chronos picks the exact minutes and which of the block's devices to use, so it is not always the same room lighting up. The plan is drawn once a day and survives a restart
 - Groups: give each schedule a group (garden, thermostats, lights, whatever you like) and the overview lists them under collapsible headers with an active/total count, the state remembered per browser. Each group can have a colour, like a Home Assistant label, shown on its header, on the schedule tags and in the week view. The week view filters by group in one tap. Or let the overview group by device type with no setup at all, under `Settings > Appearance > Group the overview by`
+- Safety off after a manual turn-on: per schedule, `switch off after a manual turn-on` switches a device off N minutes after someone turned it on by hand, at any time of day, blocks or not. Chronos recognises its own turn-ons by their context and leaves those to the block's auto-off and end action. Restart-proof through the device's `last_changed`, no state to persist
 - Pause and Skip today: every schedule can be paused until midnight, for a few hours or until a date and time, from the card, from a `button` entity per schedule and from the `chronos.pause` / `chronos.resume` services. What Chronos had switched on is switched off first, so nothing keeps running because its switch-off got paused away; the resume re-applies the active block at once
 - Workdays, calendars and people in rules: a rule can compare any on/off entity to one of its states, so `binary_sensor.workday_sensor == off` skips the morning routine on public holidays, `calendar.ferie == on` pauses the heating while the calendar says holiday, `person.x != home` gates a block on presence. The rule builder lists them next to the numeric sensors, with the states to pick from
 - Modes: Home, Away and Holiday. Each schedule declares the modes it runs in (all by default); switching the mode, from the overview, the `select` entity or the `chronos.set_mode` service, closes what Chronos had switched on in the schedules that step aside and applies the entering ones at once. Presence-simulation blocks can be limited to Away with one click, so the house looks lived-in exactly when nobody is there
@@ -29,8 +30,8 @@ A single Lovelace card provides:
 - Rules are independent objects (v1.17+): one rule can drive several schedules at once, and each schedule can combine several rules
 - 7-day week view with per-schedule filtering; disabled schedules stay visible, dimmed, so the weekly plan shows what is paused too
 - Live status with weather and device readings; the 24h forecast strip is color-coded by severity (green / yellow / orange / red, wind-aware) and shows per-hour wind speed
-- Weather rules manager with target chips, a per-schedule filter, and sorting (by linked schedule, alphabetical, or manual drag-and-drop order that persists)
-- Device detail view shows the weather rules attached to each linked schedule
+- Rules manager with target chips, a per-schedule filter, and sorting (by linked schedule, alphabetical, or manual drag-and-drop order that persists)
+- Device detail view shows the rules attached to each linked schedule
 - 6-step wizard for guided schedule creation
 - Schedule duplication with editable name, devices and days before the copy is created
 - JSON export/import to move schedules between Chronos instances (device links travel as entity ids and are re-matched on import)
@@ -47,7 +48,7 @@ A single Lovelace card provides:
 - Auto-off timer per block: lights, plugs, fans and climate devices can be switched off automatically N minutes after a turn-on block fires, restart-safe (if HA restarts mid-timer the devices are switched off at startup)
 - Offline-device recall: if a target entity is unavailable when its block fires, History records it truthfully (no more false "ok") and the action is retried automatically when the device comes back online, as long as the block is still active. Configurable max attempts, on by default, never fights manual changes (it only arms for devices that were offline at dispatch)
 - Missed switch-offs are never lost: if a device is offline when its auto-off timer fires or when an irrigation program closes its valves, Chronos switches it off as soon as it reconnects, regardless of the block window (off-late is the safe direction). Always on, survives HA restarts, gives up after 12h with a note in History
-- Confirmation before disabling: switching a schedule or a weather rule off from the card asks first, so a mis-tap can't silence a schedule for days without you noticing. On by default, cancelling leaves the switch untouched, re-enabling never asks, and the `switch.*` entities and `chronos.schedule_toggle` service stay ungated so unattended automations keep working. Turn it off under `Settings → Safety`
+- Confirmation before disabling: switching a schedule or a rule off from the card asks first, so a mis-tap can't silence a schedule for days without you noticing. On by default, cancelling leaves the switch untouched, re-enabling never asks, and the `switch.*` entities and `chronos.schedule_toggle` service stay ungated so unattended automations keep working. Turn it off under `Settings → Safety`
 - Help screen with 12 ready-made recipes (thermostat day/night, sunset lights, wind-safe blinds, rain-skip irrigation, heat-scaled fan, summer shading, solar-surplus loads, seasonal pool pump, …), quick start, FAQ and glossary
 - Compact top navigation (default): menu, clock and screen title merged into a single horizontally scrollable icon bar, freeing the sidebar width for content, especially on phones. The classic sidebar remains available under `Settings → Appearance → Navigation`
 - Per-schedule Home Assistant entities (switch + running binary_sensor + next-change sensor) for native dashboards, automations and voice, plus an embeddable single-view card mode (`view: live` / `week` / `overview` / `history`) for placing just one part of Chronos on a normal dashboard
@@ -61,7 +62,7 @@ In Greek mythology, Chronos (Χρόνος) is the primordial personification of 
 
 ## Documentation
 
-The full user guide is in [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md). It covers every section of the card with screenshots: overview, schedule editor (linear / radial / list), weather rules, live status, week view, device management, examples, and settings.
+The full user guide is in [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md). It covers every section of the card with screenshots: overview, schedule editor (linear / radial / list), rules, live status, week view, device management, examples, and settings.
 
 The in-card Help screen has a quick start, a short FAQ, and a link to the full guide.
 
@@ -74,7 +75,7 @@ The in-card Help screen has a quick start, a short FAQ, and a link to the full g
    ```
 3. Open the card and go to **Manage devices** → import the entities you want to control (e.g. `light.living_room`, `climate.kitchen`).
 4. Hit **+ New schedule** in the overview, follow the wizard.
-5. Add time blocks on the timeline. Each block has a start, an end, an action (e.g. "Turn on at 80%"), and optional weather rules.
+5. Add time blocks on the timeline. Each block has a start, an end, an action (e.g. "Turn on at 80%"), and optional rules.
 
 A typical first schedule: turn on the living room light from sunset to 23:00. Pick the light, drop a single block from `sunset` to `23:00`, action `Turn on`, brightness `80%`. Save. Done.
 
@@ -132,7 +133,7 @@ The cards are unchanged and stay available: the full card, the single-screen emb
 
 ## Card configuration
 
-Most users don't need to configure anything: schedules, devices, weather rules and integration settings live inside the card UI (no YAML to edit). The dashboard's "Edit card" dialog also opens a GUI form for the few presentation options the card exposes.
+Most users don't need to configure anything: schedules, devices, rules and integration settings live inside the card UI (no YAML to edit). The dashboard's "Edit card" dialog also opens a GUI form for the few presentation options the card exposes.
 
 ### Minimal example
 
@@ -202,7 +203,7 @@ show_last_activity: false
 show_log: false
 ```
 
-It shows, top to bottom: the schedule name and enabled state, a **Now** line (what it is doing and until when), a **Next** line (next change), a timeline bar in the chosen variant, a simple status list (active, devices, weather rules, days, period), a **last activity** line, and an **activity log** colored by outcome (green for activations, amber for retriggers, red for errors). An optional **alarm glow** pulses a red ring around the card while the newest activity is an error and clears itself on the next successful run.
+It shows, top to bottom: the schedule name and enabled state, a **Now** line (what it is doing and until when), a **Next** line (next change), a timeline bar in the chosen variant, a simple status list (active, devices, rules, days, period), a **last activity** line, and an **activity log** colored by outcome (green for activations, amber for retriggers, red for errors). An optional **alarm glow** pulses a red ring around the card while the newest activity is an error and clears itself on the next successful run.
 
 The card face has no controls; everything is set in the Lovelace "Edit card" dialog. Every section can be toggled off, so you can make it as minimal or as detailed as you want. Colors follow your Home Assistant theme.
 
@@ -240,7 +241,7 @@ The card face has no controls; everything is set in the Lovelace "Edit card" dia
 | `automation.*`   | Automation      | turn_on, turn_off, trigger (multi-select per block) |
 | (no domain)      | Service         | Generic HA service call: any `domain.service` with optional JSON service_data. Useful for `mqtt.publish`, `backup.create`, `script.run`, debug-style invocations |
 
-## Weather rules
+## Rules
 
 Since v1.17 rules live in their own store, decoupled from schedules: a rule has a stable id and a list of targets (`schedule + block`), so a single "wind > 30" rule can close the blinds AND skip the irrigation, and one schedule can combine any number of rules. Existing per-schedule rules are migrated automatically on first start. Effects that use device-specific actions (force action, replace value, scale value) require all linked schedules to share the same device type.
 
@@ -323,7 +324,7 @@ service_data:
   entity_id: script.evening_routine
 ```
 
-Note on `schedule.*` (HA Schedule helper): Chronos does NOT import these as devices because they're inherently read-only state sources, not action targets. If you want to condition a Chronos block on whether an HA Schedule helper is currently active, reference it directly in the weather rule IF expression: `schedule.work_hours == on`.
+Note on `schedule.*` (HA Schedule helper): Chronos does NOT import these as devices because they're inherently read-only state sources, not action targets. If you want to condition a Chronos block on whether an HA Schedule helper is currently active, reference it directly in the rule IF expression: `schedule.work_hours == on`.
 
 ## Execution history
 
@@ -368,7 +369,7 @@ The mode is chosen in the block editor when the schedule type is irrigation. In 
 Safety notes:
 
 - The valve run-time is owned by Chronos (it opens the valve, waits, then closes it). If Home Assistant or the integration restarts mid-program, the valves that were open are closed defensively on the next startup and a restart event is written to the History screen (System kind). This recovery is always on.
-- Weather rules are evaluated once, at program start. A skip rule prevents the program from starting; once running it runs to completion.
+- Rules are evaluated once, at program start. A skip rule prevents the program from starting; once running it runs to completion.
 - If two sequential programs can run on overlapping days and share a valve, the editor warns on save. `Settings → Irrigation → Block save on valve conflict` (off by default) turns that warning into a hard block.
 
 ## Per-block device subset
@@ -397,7 +398,7 @@ You can support the development of this scheduler by giving a small donation her
 | Service                   | Description                                                              |
 |---------------------------|--------------------------------------------------------------------------|
 | `chronos.reload`          | Reload Chronos configuration from storage                                |
-| `chronos.fire_block`      | Fire the currently active block of a schedule, bypassing weather rules. A disabled schedule, or one not scheduled today, is refused with the reason |
+| `chronos.fire_block`      | Fire the currently active block of a schedule, bypassing rules. A disabled schedule, or one not scheduled today, is refused with the reason |
 | `chronos.schedule_toggle` | Enable or disable a schedule from HA automations/scripts. Target by `schedule_id` or by `name` (case-insensitive, must be unique). The automation-friendly equivalent of the card's toggle, and of the per-schedule switch entity below |
 | `chronos.pause`           | Pause a schedule until a date and time, or until midnight when `until` is empty (Skip today). What Chronos switched on is switched off first |
 | `chronos.resume`          | End a pause now; the active block is applied at once |

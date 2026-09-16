@@ -30,6 +30,7 @@ export async function makeHass({ settings: settingsOverride = {} } = {}) {
   schedules[1].paused_until = localIso(midnight);
   // Groups (issue #24): two in "Giardino", one in "Riscaldamento", s2 without.
   schedules[0].group = "Giardino";
+  schedules[0].manual_off_min = 45;
   schedules[2].group = "Riscaldamento";
   schedules[3].group = "Giardino";
   // s2 only simulates presence when nobody is home.

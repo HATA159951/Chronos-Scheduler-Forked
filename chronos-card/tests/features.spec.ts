@@ -192,3 +192,18 @@ test("a group has a colour, shown on its header, its tags and the week chips", a
   await page.evaluate(() => (window as any).__open("week"));
   await expect(page.locator('chronos-week [data-role="group-filter"] button[data-group="Riscaldamento"]')).toHaveCSS("background-color", "rgb(30, 136, 229)");
 });
+
+test("rules are no longer called weather rules, and the safety-off field is offered", async ({ page }) => {
+  await mount(page, "overview");
+  for (const screen of ["overview", "weatherRulesList", "editor"]) {
+    await page.evaluate((s) => (window as any).__open(s), screen);
+    const text = await page.locator("chronos-card").innerText();
+    expect(text, screen).not.toMatch(/regol[ae] meteo/i);
+  }
+  await expect(page.locator("chronos-card .topnav")).toContainText("Regole");
+  const field = page.locator('chronos-editor [data-role="manual-off"] input');
+  await expect(field).toHaveValue("45");
+  await field.fill("30");
+  await field.dispatchEvent("change");
+  expect(await page.evaluate(() => (window as any).__card._schedules.find((s) => s.id === "s1").manual_off_min)).toBe(30);
+});

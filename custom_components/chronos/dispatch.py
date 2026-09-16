@@ -52,7 +52,7 @@ class DispatchMixin:
             }, context=Context())
             if self._store.settings.get("notify_rule_triggered"):
                 await self._notify(
-                    f"Regola meteo attivata: {rule.get('if', '')} → {rule.get('then', '')}",
+                    f"Regola attivata: {rule.get('if', '')} → {rule.get('then', '')}",
                     title=f"Chronos · {sched_name}",
                 )
             _LOGGER.info(

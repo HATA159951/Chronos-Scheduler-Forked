@@ -25,6 +25,7 @@ from .irrigation import IrrigationMixin
 from .presence import PresenceMixin
 from .ondemand import OnDemandMixin
 from .dispatch import DispatchMixin
+from .manual_off import ManualOffMixin
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ class ChronosScheduler(
     PresenceMixin,
     OnDemandMixin,
     DispatchMixin,
+    ManualOffMixin,
 ):
     """The scheduler core: lifecycle, the minute tick, effective blocks and
     schedule status. Everything a tick can do lives in the mixins, one file
@@ -91,6 +93,11 @@ class ChronosScheduler(
         # service call per rule per tick.
         self._forecast_cache: list[dict] = []
         self._forecast_cache_at = None
+        # Safety off after a manual turn-on: entity -> {unsub, schedule_id}.
+        # In-memory: the startup catch-up rebuilds it from last_changed.
+        self._manual_timers: dict[str, dict] = {}
+        self._unsub_manual = None
+        self._manual_watched: tuple = ()
 
     async def start(self) -> None:
         # Restart safety: if a sequential irrigation program was running when
@@ -138,6 +145,8 @@ class ChronosScheduler(
         # Forecast first, so the catch-up evaluates forecast.* rules
         # against real data instead of an empty cache.
         await self._refresh_forecast_cache()
+        self._refresh_manual_watch()
+        await self._manual_off_catch_up()
         try:
             await self._tick(dt_util.utcnow())
         except Exception:
@@ -252,6 +261,7 @@ class ChronosScheduler(
             self._unsub_scene_watch()
             self._unsub_scene_watch = None
         self._pending_scenes.clear()
+        self._cancel_manual_timers()
         # Cancel running irrigation sequences. We DON'T close the valves
         # here: a clean stop is usually part of a restart, and the next
         # start() will run _recover_interrupted_sequences() which closes
@@ -276,6 +286,7 @@ class ChronosScheduler(
                 self._hass.state,
             )
             return
+        self._refresh_manual_watch()
         local_now = dt_util.as_local(now) if now.tzinfo else now
         current_hour = local_now.hour + local_now.minute / 60
         weekday = local_now.weekday()

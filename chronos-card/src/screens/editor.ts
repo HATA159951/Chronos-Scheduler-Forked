@@ -679,6 +679,8 @@ export class ChronosEditor extends LitElement {
                           }}/>
                         <span class="field__hint" style="margin:0">${t("editor.auto_off.hint")}</span>
                       </div>
+                      ${block.action?.trigger === "both" && block.action?.auto_off_min ? html`
+                        <span class="field__hint" data-role="off-both-hint" style="display:block;margin-top:6px">${t("editor.auto_off.both_hint")}</span>` : nothing}
                     </div>
                   ` : nothing}
                   ${this._renderBlockPresence(schedule, block, availableActions)}
@@ -728,6 +730,20 @@ export class ChronosEditor extends LitElement {
                     <p class="text-xs text-mute" style="text-align:center;padding:14px 0;font-style:italic">${t("editor.devices_empty")}</p>
                   ` : nothing}
                 </div>
+                ${AUTO_OFF_TYPES.includes(deviceType) ? html`
+                  <div class="field" style="margin-top:14px" data-role="manual-off">
+                    <label class="field__label">${t("editor.manual_off.label")} <span class="text-mute">(min)</span></label>
+                    <div class="row" style="gap:10px;align-items:center">
+                      <input class="input" type="number" min="0" max="1440" step="1" style="width:110px"
+                        .value=${String(schedule.manual_off_min ?? "")} placeholder="—"
+                        @change=${(e: Event) => {
+                          const v = parseFloat((e.target as HTMLInputElement).value);
+                          this.card.updateScheduleLocal(schedule.id, { manual_off_min: !isNaN(v) && v > 0 ? Math.min(v, 1440) : null });
+                        }}/>
+                      <span class="field__hint" style="margin:0">${t("editor.manual_off.hint")}</span>
+                    </div>
+                  </div>
+                ` : nothing}
               </div>
             `}
           </div>

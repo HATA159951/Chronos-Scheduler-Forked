@@ -8,7 +8,7 @@ The workflow is simple:
 2. Create a schedule.
 3. Add one or more time blocks.
 4. Choose what each block should do.
-5. Optionally add weather rules.
+5. Optionally add rules.
 6. Use the Live status and Week view sections to verify what Chronos is doing.
 
 > **Important**  
@@ -68,7 +68,7 @@ Each block has:
 | Action | What Chronos should do |
 | Value | The value used by the selected action |
 | Target devices | Which devices are controlled by that block |
-| Weather rules | Optional rules that can modify or skip the block |
+| Rules | Optional rules that can modify or skip the block |
 
 Available actions depend on the Home Assistant domain of the selected device.
 
@@ -110,7 +110,7 @@ You can see:
 | Element | Meaning |
 |---|---|
 | Active schedules | How many schedules are currently enabled |
-| Weather rules | How many weather rules are configured |
+| Rules | How many rules are configured |
 | Current time | The time used by Chronos for live updates |
 | Schedule cards | Compact previews of each schedule |
 | Status badges | Whether a schedule is active, disabled or affected by rules |
@@ -127,6 +127,18 @@ From this section you can:
 - Duplicate an existing schedule.
 
 ---
+
+### Three ways a device is switched off
+
+| Mechanism | Where | When it switches off |
+|---|---|---|
+| **Act at the end of the block** | block panel, end action | at the block's end time, whatever happened in between |
+| **Auto-off after N minutes** | block panel | N minutes after the turn-on **sent by Chronos** at the block start |
+| **Switch off after a manual turn-on** | schedule, Devices card | N minutes after someone turned the device on **by hand**, at any time of day, blocks or not |
+
+The first two belong to the block and can be combined: the auto-off counts from the turn-on, the end action fires at the block's end, whichever comes first acts and the other finds the device already off. The editor says so when both are set.
+
+The third one is the safety net for the coffee machine switched on at three in the afternoon and forgotten: it is per schedule, applies to all its devices, and ignores the turn-ons made by Chronos itself (recognised by their context), so a block's own mechanisms stay in charge of what Chronos started. It survives a restart: a device found on at startup is handled from the moment it was switched on, unless a block of the schedule is running, in which case the block owns it. A paused or disabled schedule never fires it.
 
 ### Pause and Skip today
 
@@ -327,11 +339,11 @@ When the current date is outside the configured range, the schedule is automatic
 
 ---
 
-## Weather rules section
+## Rules section
 
-![Weather rules](images/weather.PNG)
+![Rules](images/weather.PNG)
 
-Weather rules let Chronos adapt schedules using weather data, forecast data, sun position or Home Assistant sensors.
+Rules let Chronos adapt schedules using weather data, forecast data, sun position or Home Assistant sensors.
 
 Each rule follows this logic:
 
@@ -358,7 +370,7 @@ THEN extend the fan block
 
 ### Rules are independent and shared (since 1.17)
 
-A weather rule is its own object, not a property of a single schedule. Each rule has a list of **targets**, where every target is a schedule plus the block it applies to. This means:
+A rule is its own object, not a property of a single schedule. Each rule has a list of **targets**, where every target is a schedule plus the block it applies to. This means:
 
 - one rule can drive several schedules at once, for example a single "wind > 30 km/h" rule that closes the blinds and skips the irrigation, and
 - one schedule can combine any number of rules.
@@ -367,7 +379,7 @@ Rules created in older versions are migrated automatically the first time the ne
 
 You manage rules in two places:
 
-- The **Weather rules** screen lists every rule with chips for the schedules it targets. You can filter by schedule and sort the list by linked schedule, alphabetically, or manually. The manual order is set by drag and drop or the per row up and down buttons, and it is saved (manual reordering is available when no schedule filter is active).
+- The **Rules** screen lists every rule with chips for the schedules it targets. You can filter by schedule and sort the list by linked schedule, alphabetically, or manually. The manual order is set by drag and drop or the per row up and down buttons, and it is saved (manual reordering is available when no schedule filter is active).
 - A schedule's editor shows the rules targeting that schedule. A counter chip marks rules shared with other schedules. Removing a rule there only detaches it from that schedule; the rule itself is deleted only when that was its last link.
 
 ### Conditions
@@ -522,7 +534,7 @@ The same comparison is available on the dashboard card with the `compare_with` o
 
 ### Where rules show on the timeline
 
-A block an active weather rule points at is marked on the timeline: an amber glow around the block plus a small amber dot in its corner (a cloud icon in the List view). So you can see at a glance which parts of the day the weather can change, without opening the rules.
+A block an active rule points at is marked on the timeline: an amber glow around the block plus a small amber dot in its corner (a cloud icon in the List view). So you can see at a glance which parts of the day the weather can change, without opening the rules.
 
 ### Fire modes
 
@@ -565,7 +577,7 @@ If you mapped dedicated sensors in `Settings → Language and weather source →
 - **Local station** reads your mapped sensors; attributes without a mapped sensor show a dash.
 - **Compare** shows both values side by side. Each attribute gets a delta badge colored by how far apart the two sources are: green for physiological drift, amber for a gap worth watching, red for serious misalignment. Thresholds are tuned per attribute (for example 1 °C on temperature, 5% on humidity, 2 hPa on pressure).
 
-Use Compare to spot a drifting or miscalibrated probe at a glance, or to decide whether your local station is trustworthy enough to drive weather rules.
+Use Compare to spot a drifting or miscalibrated probe at a glance, or to decide whether your local station is trustworthy enough to drive rules.
 
 ### Interactive forecast
 
@@ -697,7 +709,7 @@ After creating an example schedule, open it and adapt:
 - Time blocks.
 - Devices.
 - Actions.
-- Weather rules.
+- Rules.
 - Repeat days.
 
 ---
@@ -730,7 +742,7 @@ Available options:
 
 Spanish, Portuguese, Dutch and Polish fall back to English for any string that has not been translated yet, so new features never show broken labels.
 
-The weather source controls which Home Assistant entity Chronos uses for weather rules.
+The weather source controls which Home Assistant entity Chronos uses for rules.
 
 You can select a main `weather.*` entity and optionally override specific attributes with dedicated sensors.
 
@@ -777,7 +789,7 @@ The **Execution behavior** settings control how often Chronos updates and how pr
 
 | Setting | Description |
 |---|---|
-| Weather polling | How often weather rules are re evaluated |
+| Weather polling | How often rules are re evaluated |
 | Timeline snap | Editing precision when moving or resizing blocks |
 
 Example:
@@ -799,7 +811,7 @@ You can enable notifications for:
 | Notification | Meaning |
 |---|---|
 | Block executed | A time block has been executed |
-| Weather rule triggered | A weather rule has affected a schedule |
+| Rule triggered | A rule has affected a schedule |
 | Schedule skipped | A block or schedule has been skipped |
 | Command error | A Home Assistant service call failed |
 
@@ -811,7 +823,7 @@ These notifications are useful for testing and troubleshooting.
 
 The **Safety** settings guard the actions that switch something off.
 
-**Ask before disabling** (on by default) puts a confirmation dialog in front of every switch-off made from the card: turning a schedule off in the Overview or in the schedule editor header, and turning a weather rule off in the editor or in the Weather rules list. The dialog names what you are about to disable and offers Confirm and Cancel; cancelling leaves the switch exactly where it was, and nothing is written.
+**Ask before disabling** (on by default) puts a confirmation dialog in front of every switch-off made from the card: turning a schedule off in the Overview or in the schedule editor header, and turning a rule off in the editor or in the Rules list. The dialog names what you are about to disable and offers Confirm and Cancel; cancelling leaves the switch exactly where it was, and nothing is written.
 
 Turning something back **on** is never confirmed, so the guard never gets in the way of resuming a schedule.
 
@@ -920,7 +932,7 @@ Each block can:
 - Turn off one or more automations.
 - Trigger one or more automations.
 
-Use automation schedules when you want to enable, disable or manually trigger existing automations based on time, sun position or weather rules.
+Use automation schedules when you want to enable, disable or manually trigger existing automations based on time, sun position or rules.
 
 ---
 
@@ -952,7 +964,7 @@ Both modes are restart safe. If Home Assistant restarts while watering, any valv
 
 A valve that is offline (unavailable) when its close command is due does not lose the close: Chronos arms an off-recall and closes it as soon as it comes back online, even across a Home Assistant restart. See the off-recall paragraph in the Troubleshooting section.
 
-To skip watering when rain is likely, add a weather rule such as `forecast.rain_6h > 2` with the skip effect on the watering block.
+To skip watering when rain is likely, add a rule such as `forecast.rain_6h > 2` with the skip effect on the watering block.
 
 ---
 
@@ -968,8 +980,8 @@ You can filter by date range, by schedule, by kind (block or rule) and by outcom
 
 You can reuse schedules without rebuilding them.
 
-- **Duplicate** copies an existing schedule. The copy button in the schedule editor, and the first step of the wizard, open a dialog where you adjust the name, devices, days and whether to copy the weather rules before the copy is created. Copies start disabled.
-- **Export** saves a schedule as a JSON file from the schedule editor. Device links are exported as entity ids, and the weather rules targeting the schedule travel with it.
+- **Duplicate** copies an existing schedule. The copy button in the schedule editor, and the first step of the wizard, open a dialog where you adjust the name, devices, days and whether to copy the rules before the copy is created. Copies start disabled.
+- **Export** saves a schedule as a JSON file from the schedule editor. Device links are exported as entity ids, and the rules targeting the schedule travel with it.
 - **Import** reads a JSON export in the first step of the wizard, by pasting it or choosing a file. Devices are re matched by entity id; any that do not exist on this instance are reported so you can import and link them. Imported schedules start disabled.
 
 Exports stay compatible across versions, so a schedule exported from one Home Assistant instance can be imported into another.
@@ -1018,7 +1030,7 @@ Copy the schedule id from the editor's ID chip (or pick the schedule in the card
 - **Now**: the action running right now and until when.
 - **Next**: the next change.
 - A **timeline bar** in the variant you choose (linear, radial or list).
-- A simple **status list**: active, devices, weather rules, days and period.
+- A simple **status list**: active, devices, rules, days and period.
 - A **last activity** line: last run and last error, as relative time.
 - An **activity log**: recent state changes and activations in green, retriggers in amber, errors in red.
 
@@ -1036,7 +1048,7 @@ To drive Chronos from automations or scripts:
 | `chronos.pause` | Pauses a schedule until a date and time (`until`), or until midnight when `until` is empty, the same as Skip today. Target by `schedule_id` or by unique `name`. What Chronos switched on is switched off first. |
 | `chronos.resume` | Ends a pause now. The active block, if any, is applied at once. |
 | `chronos.set_mode` | Switches between `home`, `away` and `holiday`. Schedules restricted to other modes stop and what they switched on is switched off; schedules of the new mode apply at once. |
-| `chronos.fire_block` | Fires the currently active block of a schedule immediately, bypassing weather rules. Useful for testing. It does not bypass the schedule itself: a disabled schedule, or one not scheduled today, answers with the reason instead of firing. |
+| `chronos.fire_block` | Fires the currently active block of a schedule immediately, bypassing rules. Useful for testing. It does not bypass the schedule itself: a disabled schedule, or one not scheduled today, answers with the reason instead of firing. |
 | `chronos.reload` | Reloads the Chronos configuration from storage. |
 
 Example, pausing irrigation while a vacation flag is on:
@@ -1070,7 +1082,7 @@ Check the following:
 - The current date is inside the yearly date range, if enabled.
 - The target device is still available in Home Assistant.
 - The active block targets the correct device.
-- A weather rule is not skipping the block.
+- A rule is not skipping the block.
 
 Then open the **Live status** section to see what Chronos is doing right now.
 
@@ -1078,7 +1090,7 @@ Then open the **Live status** section to see what Chronos is doing right now.
 
 ### My block is skipped
 
-Open the schedule and check the **Weather rules** section.
+Open the schedule and check the **Rules** section.
 
 A rule may be active and may be skipping the block because its condition is true.
 
@@ -1140,7 +1152,7 @@ Check the following:
 - The schedule is enabled.
 - The selected block is currently active.
 - The target device is available in Home Assistant.
-- A weather rule is not overriding the normal behavior.
+- A rule is not overriding the normal behavior.
 
 If command error notifications are enabled, Chronos can notify you when a Home Assistant service call fails.
 
@@ -1160,7 +1172,7 @@ Example:
 After this works, try adding:
 
 - A second block.
-- A weather rule.
+- A rule.
 - Multiple devices.
 - The Week view.
 - The Live status section.
