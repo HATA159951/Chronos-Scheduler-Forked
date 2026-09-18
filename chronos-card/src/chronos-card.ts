@@ -69,6 +69,7 @@ import "./duplicate-modal";
 // Second card type: the standalone per-schedule status recap card, bundled
 // alongside the main card. Registers `chronos-schedule-card`.
 import "./schedule-card";
+import "./interactive-card";
 import "./screens/schedule-card-editor";
 
 const TITLE_KEYS: Record<Screen, [string, string]> = {
@@ -1299,6 +1300,14 @@ export class ChronosCard extends LitElement {
   type: "chronos-card",
   name: "Chronos Scheduler",
   description: "Advanced scheduler for Home Assistant with weather-based rules",
+  preview: false,
+  documentationURL: "https://github.com/Pricesswg/Chronos-Scheduler",
+});
+
+(window as any).customCards.push({
+  type: "chronos-interactive-card",
+  name: "Chronos Interactive",
+  description: "Interactive radial/linear/list timeline with drag-to-edit and value control for a single schedule",
   preview: false,
   documentationURL: "https://github.com/Pricesswg/Chronos-Scheduler",
 });
